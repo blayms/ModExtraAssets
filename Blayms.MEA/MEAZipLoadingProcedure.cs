@@ -246,7 +246,7 @@ namespace Blayms.MEA
                         case ".json":
                             Action<ZipEntry> action = (ZipEntry actionZipEntry) =>
                             {
-                                Type jsonType = Internal.GetTypeFromRefDlls(Internal.GetFileSubDirectory(actionZipEntry.Name));
+                                Type jsonType = ModExtraAssets.GetTypeFromRefDlls(Internal.GetFileSubDirectory(actionZipEntry.Name));
                                 string jsonString = Encoding.Default.GetString(bytes);
                                 assetEntry = new AssetEntryMEA(bytes, jsonType, Internal.TryDeserializingJson(actionZipEntry.Name, this, jsonString, jsonType, JsonDeserializationArgs), System.IO.Path.GetFileNameWithoutExtension(actionZipEntry.Name));
                                 ModExtraAssets.PopulateDictionary(this, jsonType, assetEntry);

@@ -162,23 +162,6 @@ namespace Blayms.MEA
             }
             return typeof(object);
         }
-        internal static Type GetTypeFromRefDlls(string name)
-        {
-            if(ModExtraAssets.referenceAssemblies.Count == 0)
-            {
-                throw new Exceptions.DllsMissingException(name);
-            }
-            for (int i = 0; i < ModExtraAssets.referenceAssemblies.Count; i++)
-            {
-                Type type = ModExtraAssets.referenceAssemblies[i].GetType(name);
-
-                if(type != null)
-                {
-                    return type;
-                }
-            }
-            return null;
-        }
         internal static void UnityLog<T>(this IList<T> list)
         {
             string log = $"IList of type {typeof(T)}: [\n";

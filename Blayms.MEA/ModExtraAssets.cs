@@ -56,7 +56,45 @@ namespace Blayms.MEA
 
             return zipLoadingProcedure;
         }
+        /// <summary>
+        /// Access a referenced assembly, which can be loaded through *.zip comments. See more on that <see href="https://sites.google.com/view/mea-docs/main/useful-information/zip-configuration">here</see>
+        /// </summary>
+        /// <param name="name">Name of the assembly</param>
+        /// <returns></returns>
+        public static Assembly GetReferenceAssemblyByName(string name)
+        {
+            Assembly assembly = referenceAssemblies.Where(x => x.FullName == name).FirstOrDefault();
+            if (assembly != null) 
+            {
+                return assembly;
+            }
+            else
+            {
+                throw new Exceptions.DllsMissingException(name, false);
+            }
+        }
+        /// <summary>
+        /// Get a type by searching all referenced assemblies (*.dll)
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static Type GetTypeFromRefDlls(string name)
+        {
+            if (referenceAssemblies.Count == 0)
+            {
+                throw new Exceptions.DllsMissingException(name);
+            }
+            for (int i = 0; i < referenceAssemblies.Count; i++)
+            {
+                Type type = referenceAssemblies[i].GetType(name);
 
+                if (type != null)
+                {
+                    return type;
+                }
+            }
+            return null;
+        }
         /// <summary>
         /// Creates MEAZipLoadingProcedure without initiating it up instantly. Use MEAZipLoadingProcedure.Initiate()
         /// </summary>
