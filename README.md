@@ -23,6 +23,7 @@ ModExtraAssets can recognize some file extension to create a specific asset of t
 |*.obj          |None|UnityEngine.Mesh|
 |*.json          |[Referencing DLLs](https://sites.google.com/view/mea-docs/main/useful-information/json-tutorial)|Any *deserializable*|
 |*.txt or *.text          |None|System.String|
+|*.dll          |[*.zip configuration](https://sites.google.com/view/mea-docs/main/useful-information/zip-configuration)                            |System.Reflection.Assembly           |
 
 # Couple of code snippets
 Example: Loading database with using [Newtonsoft.Json](https://www.newtonsoft.com/json) library
