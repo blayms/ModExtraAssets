@@ -19,6 +19,7 @@ ModExtraAssets can recognize some file extension to create a specific asset of t
 |*.png           |None                           |UnityEngine.Texture2D                    |
 |*.png           |File name must contain !number at the end to define Sprite.pixelsPerUnit Value                           |UnityEngine.Sprite                    |
 |*.png           |File name must contain !c at the end to differentiate it from other *.png files                        |UnityEngine.Cubemap                    |
+|*.png           |File name must contain !sheet at the end to differentiate it from other *.png files and also requires a [json file](https://sites.google.com/view/mea-docs/main/useful-information/loading-sprite-sheets)                        |Blayms.MEA.SpriteSheetMEA                    |
 |*.wav          |None                            |UnityEngine.AudioClip           |
 |*.obj          |None|UnityEngine.Mesh|
 |*.json          |[Referencing DLLs](https://sites.google.com/view/mea-docs/main/useful-information/json-tutorial)|Any *deserializable*|
