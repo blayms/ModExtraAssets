@@ -4,11 +4,11 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>tbb.blayms.mea</PackageId>
     <Title>ModExtraAssets</Title>
-    <Version>1.2.2</Version>
+    <Version>1.3</Version>
     <Authors>Blayms</Authors>
     <Company>TBB</Company>
     <Description>Tool that allows to load various types of assets into your BepInEx mod. Made specificly to be used for Baldi's Basics Plus BepInEx modding, but it can be used for any BepInEx plugin you make.
-Able to load Texture2D, AudioClip, Mesh, Sprite, Json, Text files, Cubemaps and Assembly files. (Loads any unknown type as a byte[])
+Able to load Texture2D, AudioClip, Mesh, Sprite, Json, Sprite Sheets, Text files, Cubemaps and Assembly files. (Loads any unknown type as a byte[])
 
 Made by Blayms (https://blayms.github.io/about-me/)
 Read documentation (https://sites.google.com/view/mea-docs/main)</Description>
@@ -16,28 +16,18 @@ Read documentation (https://sites.google.com/view/mea-docs/main)</Description>
     <PackageTags>Unity, BepInEx</PackageTags>
     <Copyright>Blayms from TBB</Copyright>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
-    <PackageReleaseNotes>1.2.2:
-- Referenced *.dll files are now accessable. &lt;https://sites.google.com/view/mea-docs/main/useful-information/zip-configuration&gt;
-PLANS: Re-look on the method how ModExtraAssets handles AudioClips in a future
-
-1.2.1:
-- You can use byte[] to load create MEAZipLoadingProcedure
-- JSON now loads in alphabetical order
-- Fixed some docs links
-- Created a github repo
-
-1.2:
-- If MEAZipLoadingProcedure detects a *.json file, it queues the .json creation to be loaded after any other assets finished to load
-(Made just because JSON files might contain MEA assets (e.g using custom JsonConverters from JSON.NET))
-- ModExtraAsset is not capable of loading Cubemaps (check &lt;https://sites.google.com/view/mea-docs/main/useful-information/supported-types-and-formats&gt; for more info)
-- Added new loading status "JsonDeserialization" that sets once all json are getting finished up
+    <PackageReleaseNotes>1.3:
+- ModExtraAssets is capable of loading sprite sheets (more on that on docs page)
+- Changed pixelsPerUnit from int to float everywhere
 </PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <RepositoryUrl>https://github.com/blayms/ModExtraAssets/</RepositoryUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="..\.editorconfig" Link=".editorconfig" />
     <None Include="..\LICENSE.txt">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>

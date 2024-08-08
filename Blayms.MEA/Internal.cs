@@ -12,9 +12,9 @@ namespace Blayms.MEA
 {
     internal static class Internal
     {
-        internal static string AssetNameOf(ZipEntry zipEntry)
+        internal static string AssetNameOf(ZipEntry zipEntry, bool includeToolAcronym = true)
         {
-            return $"{ModExtraAssets.ToolAcronym}_{Path.GetFileNameWithoutExtension(zipEntry.Name)}";
+            return $"{(includeToolAcronym ? ModExtraAssets.ToolAcronym + "_" : "")}{Path.GetFileNameWithoutExtension(zipEntry.Name)}";
         }
         internal static Texture2D Texture2DFromZip(ZipEntry zipEntry, byte[] bytes)
         {
@@ -29,14 +29,14 @@ namespace Blayms.MEA
         internal static Sprite SpriteFromZip(ZipEntry zipEntry, byte[] bytes)
         {
             string[] splitName = Path.GetFileNameWithoutExtension(zipEntry.Name).Split('!');
-            int pixelsPerUnit = 100;
+            float pixelsPerUnit = 100;
             if (splitName.Length != 2)
             {
                 Debug.LogWarning("In order to create sprite properly, you must have !int at the end of your .png file name! The sprite creation proccess won't be terminated anyway. It's pixelsPerUnit will be set to defaults, which is 100");
             }
             else
             {
-                pixelsPerUnit = int.Parse(splitName[1]);
+                pixelsPerUnit = float.Parse(splitName[1]);
             }
             Texture2D texture2D = Texture2DFromZip(zipEntry, bytes);
 
@@ -97,7 +97,6 @@ namespace Blayms.MEA
             {
                 cubemap.SetPixels(temp[i].Item1, temp[i].Item2);
             }
-
             cubemap.Apply();
 
             return cubemap;
@@ -130,6 +129,14 @@ namespace Blayms.MEA
             float aspectRatio = (float)w / (float)h;
             return (float)Math.Round(aspectRatio, 2);
         }
+        internal static MethodInfo GetMethodExtended(this Type type, string methodName, Type[] argumentTypes, Type returnType)
+        {
+            return type.GetMethods()
+                       .Where(m => m.Name == methodName && m.ReturnType == returnType)
+                       .FirstOrDefault(m => m.GetParameters()
+                                             .Select(p => p.ParameterType)
+                                             .SequenceEqual(argumentTypes));
+        }
         internal static string MeshStringCleanUp(string str)
         {
             string rstr = str.Replace('\t', ' ');
@@ -153,7 +160,18 @@ namespace Blayms.MEA
                         string[] splitName = Path.GetFileNameWithoutExtension(filePath).Split('!');
                         if (splitName.Length == 2)
                         {
-                            return splitName[1] == "c" ? typeof(Cubemap) : typeof(Sprite);
+                            if (splitName[1] == "c")
+                            {
+                                return typeof(Cubemap);
+                            }
+                            if (float.TryParse(splitName[1], out float _))
+                            {
+                                return typeof(Sprite);
+                            }
+                            if (splitName[1] == "sheet")
+                            {
+                                return typeof(Texture2D);
+                            }
                         }
                     }
                     return typeof(Texture2D);
@@ -171,6 +189,43 @@ namespace Blayms.MEA
             }
             log += "]";
             Debug.Log(log);
+        }
+        /// <summary>
+        /// A data class specifically designed to work with https://www.codeandweb.com/free-sprite-sheet-packer
+        /// </summary>
+        [Serializable]
+        internal class SpriteSheetData
+        {
+            public SpriteSheetFrameData[] frames;
+            public SpriteSheetMetaData meta;
+            [Serializable]
+            internal class SpriteSheetFrameData
+            {
+                public SpriteSheetTransformData frame;
+                public SpriteSheetTransformData spriteSourceSize;
+                public SpriteSheetRectData sourceSize;
+                public int overridePPU = -1;
+            }
+            [Serializable]
+            internal class SpriteSheetMetaData
+            {
+                public float pixelsPerUnit = 100;
+                public SpriteSheetRectData size;
+            }
+            [Serializable]
+            internal struct SpriteSheetRectData
+            {
+                public int w, h;
+            }
+            [Serializable]
+            internal struct SpriteSheetTransformData
+            {
+                public int x, y, w, h;
+                public Rect ToRect()
+                {
+                    return new Rect(x, y, w, h);
+                }
+            }
         }
     }
 }

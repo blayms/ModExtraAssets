@@ -15,82 +15,22 @@ namespace Blayms.MEA
     /// <summary>
     /// Class that allows to track the loading progress
     /// </summary>
-    public class MEAZipLoadingProcedure
+    public class MEAZipLoadingProcedure : MEALoadingProcedureBase
     {
-        private LoadingResult result;
         private string zipPath = null;
         private byte[] zipBytes = null;
         private bool usesZipBytes;
-        private MonoBehaviour monoBehaviour;
-        public delegate void LoadingResultDelegate(LoadingResult result);
-        public delegate void OnEntryLoaded(AssetEntryMEA entry);
-        /// <summary>
-        /// Invokes when "Result" of this MEAZipLoadingProcedure changes
-        /// </summary>
-        public event LoadingResultDelegate onLoadingResultDefined;
-        /// <summary>
-        /// Invokes when an entry finishes to load from *.zip
-        /// </summary>
-        public event OnEntryLoaded onEntryLoaded;
-        /// <summary>
-        /// If you're using some different JSON library, rather than unity's JsonUtility, you can link your link your library with ModExtraAssets by modifing this field<para>It uses JsonUtility.FromJson(json, type); by default</para>
-        /// </summary>
-        public Func<string, Type, object[], object> JsonDeserializeFunction = (string json, Type type, object[] args) =>
-        {
-            return JsonUtility.FromJson(json, type);
-        };
-        public object[] JsonDeserializationArgs = null;
 
         public MEAZipLoadingProcedure(string zipPath, MonoBehaviour monoBehaviour)
         {
             this.zipPath = zipPath;
-            this.monoBehaviour = monoBehaviour;
+            base.monoBehaviour = monoBehaviour;
         }
         public MEAZipLoadingProcedure(byte[] zipBytes, MonoBehaviour monoBehaviour)
         {
             this.zipBytes = zipBytes;
-            this.monoBehaviour = monoBehaviour;
+            base.monoBehaviour = monoBehaviour;
             usesZipBytes = true;
-        }
-        /// <summary>
-        /// Shows the zip loading procedure status
-        /// </summary>
-        public enum LoadingResult
-        {
-            /// <summary>
-            /// Not yet initialized
-            /// </summary>
-            None,
-            /// <summary>
-            /// Currently loading
-            /// </summary>
-            FilesInProgress,
-            /// <summary>
-            /// Loading failed
-            /// </summary>
-            Failure,
-            /// <summary>
-            /// Searches each directory
-            /// </summary>
-            DirsInProgress,
-            /// <summary>
-            /// Deserializes all *.json files from *.zip
-            /// </summary>
-            JsonDeserialization,
-            /// <summary>
-            /// Loading succeeded
-            /// </summary>
-            Success
-        }
-        /// <summary>
-        /// Current status of the loading process
-        /// </summary>
-        public LoadingResult Result
-        {
-            get
-            {
-                return result;
-            }
         }
         /// <summary>
         /// Path of the .zip file
@@ -120,39 +60,31 @@ namespace Blayms.MEA
                 return zipBytes;
             }
         }
-        /// <summary>
-        /// Manually boots up the loading procedure
-        /// </summary>
-        public void Initiate()
-        {
-            if (result == LoadingResult.Success)
-            {
-                return;
-            }
-            monoBehaviour.StartCoroutine(LoadIEnumerator());
-        }
-        private IEnumerator LoadIEnumerator()
+        protected override IEnumerator LoadIEnumerator()
         {
             SetResult(LoadingResult.FilesInProgress);
 
             ZipInputStream zipInputStream = new ZipInputStream(File.OpenRead(zipPath));
-            Stream stream = null;
+            ZipFile zipFile = null;
             if (usesZipBytes)
             {
-                stream = new MemoryStream(zipBytes);
+                zipFile = new ZipFile(new MemoryStream(zipBytes));
             }
             else
             {
-                stream = new FileStream(zipPath, FileMode.Open, FileAccess.Read);
+                zipFile = new ZipFile(new FileStream(zipPath, FileMode.Open, FileAccess.Read));
             }
-            ZipFile zipFile = new ZipFile(stream);
             ZipEntry zipEntry;
             Dictionary<string, AssetEntryMEA.Directory> dirs = new Dictionary<string, AssetEntryMEA.Directory>();
             Dictionary<string, AssetEntryMEA.Folder> createdFolders = new Dictionary<string, AssetEntryMEA.Folder>();
             AssetEntryMEA.Directory coreDir = new AssetEntryMEA.Directory(System.IO.Path.Combine(System.IO.Path.GetFileName(zipFile.Name)));
             List<Action<ZipEntry>> jsonObjectsCreation = new List<Action<ZipEntry>>();
             List<Action<ZipEntry>> jsonObjectsDirectoryFinishing = new List<Action<ZipEntry>>();
+            List<Action<ZipEntry>> spriteSheetCreationActions = new List<Action<ZipEntry>>();
             List<ZipEntry> jsonZipEntries = new List<ZipEntry>();
+            Dictionary<string, AssetEntryMEA> spriteSheetGraphicTemp = new Dictionary<string, AssetEntryMEA>();
+            List<ZipEntry> spriteSheetEntriesTemp = new List<ZipEntry>();
+            List<AssetEntryMEA> sheetObjectEntries = new List<AssetEntryMEA>();
             coreDir.folders = new Folder[] { new Folder(coreDir) };
             coreDir.isCoreDir = true;
             dirs.Add(coreDir.InZipPath, coreDir);
@@ -208,6 +140,8 @@ namespace Blayms.MEA
                     switch (fileExt)
                     {
                         case ".png":
+                        case ".jpeg":
+                        case ".jpg":
                             object obj = null;
                             switch (type.Name)
                             {
@@ -232,6 +166,10 @@ namespace Blayms.MEA
                             }
                             assetEntry = new AssetEntryMEA(bytes, typeof(Texture2D), obj, name);
                             ModExtraAssets.PopulateDictionary(this, type, assetEntry);
+                            if (name.EndsWith("!sheet"))
+                            {
+                                spriteSheetGraphicTemp.Add(name, assetEntry);
+                            }
                             break;
                         case ".wav":
                             assetEntry = new AssetEntryMEA(bytes, typeof(AudioClip), Internal.AudioClipFromZip(zipEntry, bytes),
@@ -244,15 +182,57 @@ namespace Blayms.MEA
                             ModExtraAssets.PopulateDictionary(this, type, assetEntry);
                             break;
                         case ".json":
-                            Action<ZipEntry> action = (ZipEntry actionZipEntry) =>
+                            string jsonName = Internal.AssetNameOf(zipEntry);
+                            if (!Internal.AssetNameOf(zipEntry).EndsWith("!sheetdata"))
                             {
-                                Type jsonType = ModExtraAssets.GetTypeFromRefDlls(Internal.GetFileSubDirectory(actionZipEntry.Name));
-                                string jsonString = Encoding.Default.GetString(bytes);
-                                assetEntry = new AssetEntryMEA(bytes, jsonType, Internal.TryDeserializingJson(actionZipEntry.Name, this, jsonString, jsonType, JsonDeserializationArgs), System.IO.Path.GetFileNameWithoutExtension(actionZipEntry.Name));
-                                ModExtraAssets.PopulateDictionary(this, jsonType, assetEntry);
-                            };
-                            jsonZipEntries.Add(zipEntry);
-                            jsonObjectsCreation.Add(action);
+                                Action<ZipEntry> action = (ZipEntry actionZipEntry) =>
+                                {
+                                    Type jsonType = ModExtraAssets.GetTypeFromRefDlls(Internal.GetFileSubDirectory(actionZipEntry.Name));
+                                    string jsonString = Encoding.Default.GetString(bytes);
+                                    assetEntry = new AssetEntryMEA(bytes, jsonType, Internal.TryDeserializingJson(actionZipEntry.Name, this, jsonString, jsonType, JsonDeserializationArgs), System.IO.Path.GetFileNameWithoutExtension(actionZipEntry.Name));
+                                    ModExtraAssets.PopulateDictionary(this, jsonType, assetEntry);
+                                };
+                                jsonZipEntries.Add(zipEntry);
+                                jsonObjectsCreation.Add(action);
+                            }
+                            else
+                            {
+                                Action<ZipEntry> spriteSheetCreation = (ZipEntry actionZipEntry) =>
+                                {
+                                    SpriteSheetMEA spriteSheet = ScriptableObject.CreateInstance<SpriteSheetMEA>();
+                                    string jsonString = Encoding.Default.GetString(bytes);
+                                    spriteSheet.rawJson = jsonString;
+                                    if (spriteSheetGraphicTemp.TryGetValue(Internal.AssetNameOf(actionZipEntry, false).Replace("data", ""), out AssetEntryMEA asset))
+                                    {
+                                        spriteSheet.textureEntry = asset;
+                                        spriteSheet.texture = asset.ValueAs<Texture2D>();
+                                        spriteSheet.name = spriteSheet.texture.name.Split('!')[0];
+                                    }
+                                    else
+                                    {
+                                        spriteSheet.name = "MEA_FAILED_TO_LOAD_SPRITE_SHEET_ASSET";
+                                        Debug.LogWarning($"ModExtraAssets failed to find a texture for sprite sheet ({Internal.AssetNameOf(actionZipEntry, false)})");
+                                    }
+                                    Type jsonConvert = ModExtraAssets.GetTypeFromRefDlls("Newtonsoft.Json.JsonConvert");
+                                    if (jsonConvert != null)
+                                    {
+                                        spriteSheet.internalData = jsonConvert.GetMethodExtended("DeserializeObject",
+                                            new Type[] { typeof(string), typeof(Type) }, typeof(System.Object)).Invoke(null, new object[] { jsonString, typeof(Internal.SpriteSheetData) }) as Internal.SpriteSheetData;
+                                        spriteSheet.Internal_BakeAll();
+                                        AssetEntryMEA assetEntryOfSheet = new AssetEntryMEA(bytes, typeof(SpriteSheetMEA), spriteSheet,
+                                            System.IO.Path.GetFileNameWithoutExtension(actionZipEntry.Name).Replace("!sheetdata", ""));
+                                        sheetObjectEntries.Add(assetEntryOfSheet);
+                                        spriteSheet.assetEntry = assetEntryOfSheet;
+                                        ModExtraAssets.PopulateDictionary(this, typeof(SpriteSheetMEA), assetEntryOfSheet);
+                                    }
+                                    else
+                                    {
+                                        throw new Exceptions.JsonNetMissingException("Sprite sheet creation requires a reference to Newtonsoft.Json");
+                                    }
+                                };
+                                spriteSheetEntriesTemp.Add(zipEntry);
+                                spriteSheetCreationActions.Add(spriteSheetCreation);
+                            }
                             break;
                         case ".txt":
                         case ".text":
@@ -289,7 +269,7 @@ namespace Blayms.MEA
                         }
                     };
 
-                    if(fileExt == ".json")
+                    if (fileExt == ".json")
                     {
                         jsonObjectsDirectoryFinishing.Add(dirFinishingAction);
                     }
@@ -299,7 +279,7 @@ namespace Blayms.MEA
                     }
 
                     yield return new WaitForEndOfFrame();
-                    onEntryLoaded?.Invoke(assetEntry);
+                    Invoke_onEntryLoaded(assetEntry);
                 }
             }
 
@@ -319,6 +299,20 @@ namespace Blayms.MEA
             {
                 tuple[i].Item1?.Invoke(tuple[i].Item3);
                 tuple[i].Item2?.Invoke(tuple[i].Item3);
+            }
+
+            for (int i = 0; i < spriteSheetEntriesTemp.Count; i++)
+            {
+                spriteSheetCreationActions[i].Invoke(spriteSheetEntriesTemp[i]);
+            }
+            Dictionary<string, AssetEntryMEA>.Enumerator enumerator = spriteSheetGraphicTemp.GetEnumerator();
+            while (enumerator.MoveNext())
+            {
+                AssetEntryMEA sheetTextureEntry = enumerator.Current.Value;
+                AssetEntryMEA sheet = sheetObjectEntries.Where(x => x.Name == sheetTextureEntry.Name.Replace("!sheet", "")).FirstOrDefault();
+                sheetTextureEntry.directory.folders.Last().assets_list.Add(sheet);
+                sheet.directory = sheetTextureEntry.directory;
+                yield return new WaitForEndOfFrame();
             }
 
             SetResult(LoadingResult.DirsInProgress);
@@ -356,11 +350,6 @@ namespace Blayms.MEA
             coreDir.folders = coreFolders.ToArray();
 
             SetResult(LoadingResult.Success);
-        }
-        internal void SetResult(LoadingResult result)
-        {
-            this.result = result;
-            onLoadingResultDefined?.Invoke(result);
         }
         private void ReadZipComment(string comment)
         {
