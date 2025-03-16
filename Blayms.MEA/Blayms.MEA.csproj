@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>tbb.blayms.mea</PackageId>
     <Title>ModExtraAssets</Title>
-    <Version>1.3</Version>
+    <Version>1.4</Version>
     <Authors>Blayms</Authors>
     <Company>TBB</Company>
     <Description>Tool that allows to load various types of assets into your BepInEx mod. Made specificly to be used for Baldi's Basics Plus BepInEx modding, but it can be used for any BepInEx plugin you make.
@@ -19,11 +19,16 @@ Read documentation (https://sites.google.com/view/mea-docs/main)</Description>
     <PackageReleaseNotes>1.3:
 - ModExtraAssets is capable of loading sprite sheets (more on that on docs page)
 - Changed pixelsPerUnit from int to float everywhere
-</PackageReleaseNotes>
+
+1.4:
+- Changed API slightly (Removed LoadAllZipAssets function, insured a support for different file types by adding MEALoadingProcedureBase class)
+- Added procedure support for Versatile File Packages (My own archive-like file format that uses LZMA compression). The VFP Editor is not yet public and I don't think it will be public any time soon, but I'm definetely planning to do that! Read some information about that file type here on docs:  https://sites.google.com/view/mea-docs/main/useful-information/vfp-info </PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <RepositoryUrl>https://github.com/blayms/ModExtraAssets/</RepositoryUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <NeutralLanguage>en</NeutralLanguage>
+    <PackageProjectUrl>https://www.nuget.org/packages/tbb.blayms.mea</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
