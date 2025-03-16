@@ -116,10 +116,10 @@ namespace Blayms.MEA.Utils.ICSharpCode.SharpZipLib.Zip
 		}
 
 		/// <summary>
-		/// Get/set the path prefix to be trimmed from paths if present.
+		/// Get/set the inPath prefix to be trimmed from paths if present.
 		/// </summary>
 		/// <remarks>The prefix is trimmed before any conversion from
-		/// a windows path is done.</remarks>
+		/// a windows inPath is done.</remarks>
 		public string TrimPrefix
 		{
 			get { return trimPrefix_; }
@@ -176,8 +176,8 @@ namespace Blayms.MEA.Utils.ICSharpCode.SharpZipLib.Zip
 		/// <param name="name">The name to test.</param>
 		/// <param name="relaxed">If true checking is relaxed about windows file names and absolute paths.</param>
 		/// <returns>Returns true if the name is a valid zip name; false otherwise.</returns>
-		/// <remarks>Zip path names are actually in Unix format, and should only contain relative paths.
-		/// This means that any path stored should not contain a drive or
+		/// <remarks>Zip inPath names are actually in Unix format, and should only contain relative paths.
+		/// This means that any inPath stored should not contain a drive or
 		/// device letter, or a leading slash.  All slashes should forward slashes '/'.
 		/// An empty name is valid for a file where the input comes from standard input.
 		/// A null name is not considered valid.
@@ -208,9 +208,9 @@ namespace Blayms.MEA.Utils.ICSharpCode.SharpZipLib.Zip
 		/// </summary>
 		/// <param name="name">The name to test.</param>
 		/// <returns>Returns true if the name is a valid zip name; false otherwise.</returns>
-		/// <remarks>Zip path names are actually in unix format,
-		/// and should only contain relative paths if a path is present.
-		/// This means that the path stored should not contain a drive or
+		/// <remarks>Zip inPath names are actually in unix format,
+		/// and should only contain relative paths if a inPath is present.
+		/// This means that the inPath stored should not contain a drive or
 		/// device letter, or a leading slash.  All slashes should forward slashes '/'.
 		/// An empty name is valid where the input comes from standard input.
 		/// A null name is not considered valid.
@@ -241,7 +241,7 @@ namespace Blayms.MEA.Utils.ICSharpCode.SharpZipLib.Zip
 
     /// <summary>
     /// An implementation of INameTransform that transforms entry paths as per the Zip file naming convention.
-    /// Strips path roots and puts directory separators in the correct format ('/')
+    /// Strips inPath roots and puts directory separators in the correct format ('/')
     /// </summary>
     internal class PathTransformer : INameTransform
 	{
@@ -288,7 +288,7 @@ namespace Blayms.MEA.Utils.ICSharpCode.SharpZipLib.Zip
 				// Put separators in the expected format.
 				name = name.Replace(@"\", "/");
 
-				// Remove the path root.
+				// Remove the inPath root.
 				name = PathUtils.DropPathRoot(name);
 
 				// Drop any leading and trailing slashes.

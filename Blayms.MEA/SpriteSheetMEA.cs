@@ -17,7 +17,7 @@ namespace Blayms.MEA
         internal AssetEntryMEA textureEntry, assetEntry;
         internal string rawJson;
         /// <summary>
-        /// If set, acts as a default value for every sprite slice's pixelsPerUnit property (default = 100, json property path: "meta"."pixelsPerUnit")
+        /// If set, acts as a default value for every sprite slice's pixelsPerUnit property (default = 100, json property inPath: "meta"."pixelsPerUnit")
         /// </summary>
         public float SheetPixelsPerUnit => internalData.meta.pixelsPerUnit;
         /// <summary>

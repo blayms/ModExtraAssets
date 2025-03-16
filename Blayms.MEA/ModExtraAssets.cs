@@ -19,7 +19,7 @@ namespace Blayms.MEA
         internal const string ToolAcronym = "MEA";
         internal static List<Assembly> referenceAssemblies = new List<Assembly>();
 
-        internal static void PopulateDictionary(MEAZipLoadingProcedure procedure, Type key, AssetEntryMEA assetEntry)
+        internal static void PopulateDictionary(MEALoadingProcedureBase procedure, Type key, AssetEntryMEA assetEntry)
         {
             if (!internalDatabase.ContainsKey(key))
             {
@@ -32,95 +32,66 @@ namespace Blayms.MEA
             }
             internalDatabase[key].Add(assetEntry);
         }
+        internal static void TryAddingReferenceAssembly(Assembly pluginAssembly)
+        {
+            if (!referenceAssemblies.Contains(pluginAssembly))
+            {
+                referenceAssemblies.Add(pluginAssembly);
+                AssemblyName[] refAssemblies = pluginAssembly.GetReferencedAssemblies();
+                for (int j = 0; j < refAssemblies.Length; j++)
+                {
+                    Assembly assembly = Assembly.Load(refAssemblies[j]);
+
+                    if (!referenceAssemblies.Contains(assembly))
+                    {
+                        referenceAssemblies.Add(assembly);
+                    }
+                }
+            }
+        }
         #endregion
         /// <summary>
-        /// Function that adds content of a *.zip file into ModExtraAssets database
+        /// Creates ModExtraAssets LoadingProcedure without initiating it up instantly. Use <see cref="MEALoadingProcedureBase.Initiate()"/>
         /// </summary>
-        /// <param name="zipPath">Path of the .zip file that contains all assets</param>
-        /// <param name="monoBehaviour">Instance of UnityEngine.MonoBehaviour that allows you to run IEnumerators (required for loading assets)</param>
-        /// <param name="customJsonFunction">A custom function for JSON deserialization, in case you're using different JSON library</param>
-        /// <param name="customJsonDeserializationArgs">Some extra arguments for custom JSON deserialization function, if needed</param>
-        /// <returns>Class that allows to track the loading progress</returns>
-        public static MEAZipLoadingProcedure LoadAllZipAssets(string zipPath, MonoBehaviour monoBehaviour, Func<string, Type, object[], object> customJsonFunction = default, object[] customJsonDeserializationArgs = null)
-        {
-            MEAZipLoadingProcedure zipLoadingProcedure = new MEAZipLoadingProcedure(zipPath, monoBehaviour);
-            if(customJsonFunction != default)
-            {
-                zipLoadingProcedure.JsonDeserializeFunction = customJsonFunction;
-            }
-            if(customJsonDeserializationArgs != null)
-            {
-                zipLoadingProcedure.JsonDeserializationArgs = customJsonDeserializationArgs;
-            }
-            zipLoadingProcedure.Initiate();
-
-            return zipLoadingProcedure;
-        }
-        /// <summary>
-        /// Creates MEAZipLoadingProcedure without initiating it up instantly. Use MEAZipLoadingProcedure.Initiate()
-        /// </summary>
-        /// <param name="zipPath">Path of the .zip file that contains all assets</param>
+        /// <param name="filePath">Path of the file</param>
         /// <param name="monoBehaviour">Instance of UnityEngine.MonoBehaviour that allows you to run IEnumerators (required for loading assets)</param>
         /// <param name="customJsonFunction">A custom function for JSON deserialization, in case you're using different JSON library</param>
         /// <param name="customJsonDeserializationArgs">Some extra arguments for custom JSON deserialization function, if needed</param>
         /// <returns></returns>
-        public static MEAZipLoadingProcedure CreateLoadingProcedure(string zipPath, MonoBehaviour monoBehaviour, Func<string, Type, object[], object> customJsonFunction = default, object[] customJsonDeserializationArgs = null)
+        public static T CreateLoadingProcedure<T>(string filePath, MonoBehaviour monoBehaviour, Func<string, Type, object[], object> customJsonFunction = default, object[] customJsonDeserializationArgs = null) where T : MEALoadingProcedureBase
         {
-            MEAZipLoadingProcedure zipLoadingProcedure = new MEAZipLoadingProcedure(zipPath, monoBehaviour);
+            T loadingProcedure = (T)Activator.CreateInstance(typeof(T), filePath, monoBehaviour);
             if (customJsonFunction != default)
             {
-                zipLoadingProcedure.JsonDeserializeFunction = customJsonFunction;
+                loadingProcedure.JsonDeserializeFunction = customJsonFunction;
             }
             if (customJsonDeserializationArgs != null)
             {
-                zipLoadingProcedure.JsonDeserializationArgs = customJsonDeserializationArgs;
+                loadingProcedure.JsonDeserializationArgs = customJsonDeserializationArgs;
             }
-            return zipLoadingProcedure;
-        }
-        /// <summary>
-        /// Function that adds content of a *.zip file into ModExtraAssets database
-        /// </summary>
-        /// <param name="zipBytes">Bytes of the .zip file that contains all assets</param>
-        /// <param name="monoBehaviour">Instance of UnityEngine.MonoBehaviour that allows you to run IEnumerators (required for loading assets)</param>
-        /// <param name="customJsonFunction">A custom function for JSON deserialization, in case you're using different JSON library</param>
-        /// <param name="customJsonDeserializationArgs">Some extra arguments for custom JSON deserialization function, if needed</param>
-        /// <returns>Class that allows to track the loading progress</returns>
-        public static MEAZipLoadingProcedure LoadAllZipAssets(byte[] zipBytes, MonoBehaviour monoBehaviour, Func<string, Type, object[], object> customJsonFunction = default, object[] customJsonDeserializationArgs = null)
-        {
-            MEAZipLoadingProcedure zipLoadingProcedure = new MEAZipLoadingProcedure(zipBytes, monoBehaviour);
-            if (customJsonFunction != default)
-            {
-                zipLoadingProcedure.JsonDeserializeFunction = customJsonFunction;
-            }
-            if (customJsonDeserializationArgs != null)
-            {
-                zipLoadingProcedure.JsonDeserializationArgs = customJsonDeserializationArgs;
-            }
-            zipLoadingProcedure.Initiate();
-
-            return zipLoadingProcedure;
+            return loadingProcedure;
         }
 
         /// <summary>
-        /// Creates MEAZipLoadingProcedure without initiating it up instantly. Use MEAZipLoadingProcedure.Initiate()
+        /// Creates ModExtraAssets LoadingProcedure without initiating it up instantly. Use <see cref="MEALoadingProcedureBase.Initiate()"/>
         /// </summary>
-        /// <param name="zipBytes">Bytes of the .zip file that contains all assets</param>
+        /// <param name="fileBytes">Bytes of the file</param>
         /// <param name="monoBehaviour">Instance of UnityEngine.MonoBehaviour that allows you to run IEnumerators (required for loading assets)</param>
         /// <param name="customJsonFunction">A custom function for JSON deserialization, in case you're using different JSON library</param>
         /// <param name="customJsonDeserializationArgs">Some extra arguments for custom JSON deserialization function, if needed</param>
         /// <returns></returns>
-        public static MEAZipLoadingProcedure CreateLoadingProcedure(byte[] zipBytes, MonoBehaviour monoBehaviour, Func<string, Type, object[], object> customJsonFunction = default, object[] customJsonDeserializationArgs = null)
+        public static T CreateLoadingProcedure<T>(byte[] fileBytes, MonoBehaviour monoBehaviour, Func<string, Type, object[], object> customJsonFunction = default, object[] customJsonDeserializationArgs = null) where T : MEALoadingProcedureBase
         {
-            MEAZipLoadingProcedure zipLoadingProcedure = new MEAZipLoadingProcedure(zipBytes, monoBehaviour);
+            T loadingProcedure = (T)Activator.CreateInstance(typeof(T), fileBytes, monoBehaviour);
             if (customJsonFunction != default)
             {
-                zipLoadingProcedure.JsonDeserializeFunction = customJsonFunction;
+                loadingProcedure.JsonDeserializeFunction = customJsonFunction;
             }
             if (customJsonDeserializationArgs != null)
             {
-                zipLoadingProcedure.JsonDeserializationArgs = customJsonDeserializationArgs;
+                loadingProcedure.JsonDeserializationArgs = customJsonDeserializationArgs;
             }
-            return zipLoadingProcedure;
+            return loadingProcedure;
         }
         /// <summary>
         /// Get an entry class by the filename, which contains a plenty of information about it
@@ -141,12 +112,15 @@ namespace Blayms.MEA
             }
         }
         /// <summary>
-        /// Get a value of an entry. Shortcut for ModExtraAssets.GetEntry<T>("name").ValueAs<T>();
+        /// Get a value of an entry. Shortcut for ModExtraAssets.GetEntry&lt;T&gt;("name").ValueAs&lt;T&gt;().
         /// </summary>
         /// <typeparam name="T">Type</typeparam>
         /// <param name="name">File name</param>
         /// <returns></returns>
-        /// <exception cref="Exceptions.EntryFailGrabException">Happens if something is null or basically missing</exception>
+        /// <exception cref="Exceptions.EntryFailGrabException">
+        /// Happens if something is null or basically missing
+        /// </exception>
+
         public static T GetEntryValue<T>(string name)
         {
             try

@@ -10,17 +10,17 @@ namespace Blayms.MEA.Utils.ICSharpCode.SharpZipLib.Core
     internal static class PathUtils
 	{
 		/// <summary>
-		/// Remove any path root present in the path
+		/// Remove any inPath root present in the inPath
 		/// </summary>
-		/// <param name="path">A <see cref="string"/> containing path information.</param>
-		/// <returns>The path with the root removed if it was present; path otherwise.</returns>
+		/// <param name="path">A <see cref="string"/> containing inPath information.</param>
+		/// <returns>The inPath with the root removed if it was present; inPath otherwise.</returns>
 		public static string DropPathRoot(string path)
 		{
 			var invalidChars = Path.GetInvalidPathChars();
 			// If the first character after the root is a ':', .NET < 4.6.2 throws
 			var cleanRootSep = path.Length >= 3 && path[1] == ':' && path[2] == ':';
 			
-			// Replace any invalid path characters with '_' to prevent Path.GetPathRoot from throwing.
+			// Replace any invalid inPath characters with '_' to prevent Path.GetPathRoot from throwing.
 			// Only pass the first 258 (should be 260, but that still throws for some reason) characters
 			// as .NET < 4.6.2 throws on longer paths
 			var cleanPath = new string(path.Take(258)

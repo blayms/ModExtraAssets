@@ -277,7 +277,7 @@ namespace Blayms.MEA.Utils.ICSharpCode.SharpZipLib.Zip.Compression
 						path = path * 2 + 1;
 					}
 
-					/* Now propagate the last element down along path.  Normally
+					/* Now propagate the last element down along inPath.  Normally
 					* it shouldn't go too deep.
 					*/
 					int lastVal = values[last];
@@ -312,7 +312,7 @@ namespace Blayms.MEA.Utils.ICSharpCode.SharpZipLib.Zip.Compression
 						path = ppos * 2 + 1;
 					}
 
-					// Now propagate the new element down along path
+					// Now propagate the new element down along inPath
 					while ((path = ppos) > 0 && values[heap[ppos = (path - 1) / 2]] > lastVal)
 					{
 						heap[path] = heap[ppos];

@@ -24,10 +24,10 @@ namespace Blayms.MEA.Utils
         const int BlockSize_16Bit = 2;
 
         /// <summary>
-        /// Initiate PCM format *.wav audio file (using Unity's Application data path) and convert to AudioClip.
+        /// Initiate PCM format *.wav audio file (using Unity's Application data inPath) and convert to AudioClip.
         /// </summary>
         /// <returns>The AudioClip.</returns>
-        /// <param name="filePath">Local file path to .wav file</param>
+        /// <param name="filePath">Local file inPath to .wav file</param>
         public static AudioClip ToAudioClip(string filePath)
         {
             if (!filePath.StartsWith(Application.persistentDataPath) && !filePath.StartsWith(Application.dataPath))

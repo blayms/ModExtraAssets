@@ -33,7 +33,7 @@ namespace Blayms.MEA
         /// </summary>
         public Type AssetType => assetType;
         /// <summary>
-        /// Value of the entry as object, use TryValueAs<T>() or ValueAs<T>() to get the actual value
+        /// Value of the entry as object, use <see cref="TryValueAs{T}(out T)"/> or <see cref="ValueAs{T}"/> to get the actual value
         /// </summary>
         public object Value => value;
         /// <summary>
@@ -91,21 +91,21 @@ namespace Blayms.MEA
             /// </summary>
             public Folder[] Folders => folders;
             /// <summary>
-            /// Path of the directory in-zip
+            /// Path of the directory in-file
             /// </summary>
-            public string InZipPath => inZipPath;
+            public string InPath => inPath;
             /// <summary>
-            /// Path of the .zip file on disk
+            /// Path of the file on disk
             /// </summary>
-            public string ZipFilePath => zipPath;
+            public string FilePath => filePath;
             /// <summary>
             /// Is a root directory
             /// </summary>
             public bool IsRoot => isCoreDir;
             internal Folder[] folders = new Folder[0];
             internal bool isCoreDir;
-            private string inZipPath;
-            internal string zipPath;
+            private string inPath;
+            internal string filePath;
             private static Dictionary<string, Directory> allDirsStatic = new Dictionary<string, Directory>();
             /// <summary>
             /// GetFolderByName(name);
@@ -151,19 +151,19 @@ namespace Blayms.MEA
                 }
                 return count;
             }
-            internal Directory(string inZipPath)
+            internal Directory(string path)
             {
-                this.inZipPath = inZipPath;
-                if (!allDirsStatic.ContainsKey(inZipPath))
+                this.inPath = path;
+                if (!allDirsStatic.ContainsKey(path))
                 {
-                    allDirsStatic.Add(inZipPath, this);
+                    allDirsStatic.Add(path, this);
                 }
             }
             ~Directory()
             {
-                if (allDirsStatic.ContainsKey(inZipPath))
+                if (allDirsStatic.ContainsKey(inPath))
                 {
-                    allDirsStatic.Remove(inZipPath);
+                    allDirsStatic.Remove(inPath);
                 }
             }
             /// <summary>
@@ -190,7 +190,7 @@ namespace Blayms.MEA
             }
             public override string ToString()
             {
-                return $"Directory ({inZipPath})";
+                return $"Directory ({inPath})";
             }
         }
         /// <summary>

@@ -8,7 +8,7 @@ namespace Blayms.MEA.Exceptions
     internal class EntryDuplicateNotAllowedException : Exception
     {
         public EntryDuplicateNotAllowedException(AssetEntryMEA assetEntry)
-            : base($"You cannot add a duplicated entry into the database. The asset entry that caused this exception is {$"AssetEntryMEA of type ({assetEntry} from {assetEntry.EntryDirectory.ZipFilePath} & {assetEntry.EntryDirectory.InZipPath}"}")
+            : base($"You cannot add a duplicated entry into the database. The asset entry that caused this exception is {$"AssetEntryMEA of type ({assetEntry} from {assetEntry.EntryDirectory.FilePath} & {assetEntry.EntryDirectory.InPath}"}")
         {
 
         }

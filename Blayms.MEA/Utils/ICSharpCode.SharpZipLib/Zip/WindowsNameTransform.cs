@@ -12,7 +12,7 @@ namespace Blayms.MEA.Utils.ICSharpCode.SharpZipLib.Zip
     internal class WindowsNameTransform : INameTransform
 	{
 		/// <summary>
-		///  The maximum windows path name permitted.
+		///  The maximum windows inPath name permitted.
 		/// </summary>
 		/// <remarks>This may not valid for all windows systems - CE?, etc but I cant find the equivalent in the CLR.</remarks>
 		private const int MaxPath = 260;
@@ -23,7 +23,7 @@ namespace Blayms.MEA.Utils.ICSharpCode.SharpZipLib.Zip
 		private bool _allowParentTraversal;
 
 		/// <summary>
-		/// In this case we need Windows' invalid path characters.
+		/// In this case we need Windows' invalid inPath characters.
 		/// Path.GetInvalidPathChars() only returns a subset invalid on all platforms.
 		/// </summary>
 		private static readonly char[] InvalidEntryChars = new char[] {
@@ -159,7 +159,7 @@ namespace Blayms.MEA.Utils.ICSharpCode.SharpZipLib.Zip
 		/// </summary>
 		/// <param name="name">The name to test.</param>
 		/// <returns>Returns true if the name is a valid zip name; false otherwise.</returns>
-		/// <remarks>The filename isnt a true windows path in some fundamental ways like no absolute paths, no rooted paths etc.</remarks>
+		/// <remarks>The filename isnt a true windows inPath in some fundamental ways like no absolute paths, no rooted paths etc.</remarks>
 		public static bool IsValidName(string name)
 		{
 			bool result =

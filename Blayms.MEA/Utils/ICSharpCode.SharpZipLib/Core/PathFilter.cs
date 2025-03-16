@@ -5,7 +5,7 @@ namespace Blayms.MEA.Utils.ICSharpCode.SharpZipLib.Core
 {
     /// <summary>
     /// PathFilter filters directories and files using a form of <see cref="System.Text.RegularExpressions.Regex">regular expressions</see>
-    /// by full path name.
+    /// by full inPath name.
     /// See <see cref="NameFilter">NameFilter</see> for more detail on filtering.
     /// </summary>
     internal class PathFilter : IScanFilter
@@ -30,7 +30,7 @@ namespace Blayms.MEA.Utils.ICSharpCode.SharpZipLib.Core
 		/// </summary>
 		/// <param name="name">The name to test.</param>
 		/// <returns>True if the name matches, false otherwise.</returns>
-		/// <remarks><see cref="Path.GetFullPath(string)"/> is used to get the full path before matching.</remarks>
+		/// <remarks><see cref="Path.GetFullPath(string)"/> is used to get the full inPath before matching.</remarks>
 		public virtual bool IsMatch(string name)
 		{
 			bool result = false;

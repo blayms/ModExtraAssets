@@ -8,7 +8,7 @@ namespace Blayms.MEA.Exceptions
     internal class FailedZipCommentParseException : Exception
     {
         public FailedZipCommentParseException(MEAZipLoadingProcedure procedure)
-            : base($"Failed to parse {procedure.Path} comments. Check your comments for any syntax errors!")
+            : base($"Failed to parse {procedure.Name} comments. Check your comments for any syntax errors!")
         {
 
         }

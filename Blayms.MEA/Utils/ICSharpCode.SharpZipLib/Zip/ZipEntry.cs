@@ -145,7 +145,7 @@ namespace Blayms.MEA.Utils.ICSharpCode.SharpZipLib.Zip
 		/// <param name="name">
 		/// The name for this entry. Can include directory components.
 		/// The convention for names is 'unix' style paths with relative names only.
-		/// There are with no device names and path elements are separated by '/' characters.
+		/// There are with no device names and inPath elements are separated by '/' characters.
 		/// </param>
 		/// <exception cref="ArgumentNullException">
 		/// The name passed is null
@@ -161,7 +161,7 @@ namespace Blayms.MEA.Utils.ICSharpCode.SharpZipLib.Zip
 		/// <param name="name">
 		/// The name for this entry. Can include directory components.
 		/// The convention for names is 'unix'  style paths with no device names and
-		/// path elements separated by '/' characters.  This is not enforced see <see cref="CleanName(string)">CleanName</see>
+		/// inPath elements separated by '/' characters.  This is not enforced see <see cref="CleanName(string)">CleanName</see>
 		/// on how to ensure names are valid if this is desired.
 		/// </param>
 		/// <param name="versionRequiredToExtract">

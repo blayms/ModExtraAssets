@@ -14,6 +14,7 @@ namespace Blayms.MEA
         public delegate void LoadingResultDelegate(LoadingResult result);
         public delegate void OnEntryLoaded(AssetEntryMEA entry);
         protected MonoBehaviour monoBehaviour;
+        private string name;
         private LoadingResult result;
         /// <summary>
         /// Invokes when "Result" of this MEAZipLoadingProcedure changes
@@ -102,5 +103,59 @@ namespace Blayms.MEA
         {
             onLoadingResultDefined?.Invoke(result);
         }
+
+        private string filePath = null;
+        private byte[] fileBytes = null;
+        private bool usesBytes;
+
+        public MEALoadingProcedureBase(string filePath, MonoBehaviour monoBehaviour)
+        {
+            this.filePath = filePath;
+            name = System.IO.Path.GetFileNameWithoutExtension(filePath);
+            this.monoBehaviour = monoBehaviour;
+        }
+        public MEALoadingProcedureBase(byte[] fileBytes, MonoBehaviour monoBehaviour)
+        {
+            this.fileBytes = fileBytes;
+            this.monoBehaviour = monoBehaviour;
+            name = $"Bytes-Based {GetType().FullName}";
+            usesBytes = true;
+        }
+        /// <summary>
+        /// Copies the name of the file used for this procedure<para><b>If your procedure uses file bytes, the name will be "Bytes-Based {Type}",</b><br><b>because it's impossible to grab a file name straight up from byte array</b></br></para>
+        /// </summary>
+        public string Name => name;
+        /// <summary>
+        /// Path of the .zip file
+        /// </summary>
+        public string Path
+        {
+            get
+            {
+                if (usesBytes)
+                {
+                    throw new DataMisalignedException("Current MEAZipLoadingProcedure does not use path for populating the database. Use \"Bytes\" property instead.");
+                }
+                return filePath;
+            }
+        }
+        /// <summary>
+        /// Bytes of the .zip file
+        /// </summary>
+        public byte[] Bytes
+        {
+            get
+            {
+                if (!usesBytes)
+                {
+                    throw new DataMisalignedException("Current MEAZipLoadingProcedure does not use bytes for populating the database. Use \"Path\" property instead.");
+                }
+                return fileBytes;
+            }
+        }
+        /// <summary>
+        /// True if this procedure was created with file bytes
+        /// </summary>
+        public bool UsesFileBytes => usesBytes;
     }
 }

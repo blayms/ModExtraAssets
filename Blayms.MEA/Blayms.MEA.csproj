@@ -49,6 +49,9 @@ Read documentation (https://sites.google.com/view/mea-docs/main)</Description>
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="Blayms.VersatileFilePackage">
+      <HintPath>..\..\VersatileFilePackage\Blayms.VersatileFilePackage\bin\Debug\Blayms.VersatileFilePackage.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.Analytics.DataPrivacy">
       <HintPath>..\..\..\BaldiPlusForMods\BALDI_Data\Managed\Unity.Analytics.DataPrivacy.dll</HintPath>
     </Reference>

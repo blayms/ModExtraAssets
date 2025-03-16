@@ -13,66 +13,29 @@ using static Blayms.MEA.AssetEntryMEA;
 namespace Blayms.MEA
 {
     /// <summary>
-    /// Class that allows to track the loading progress
+    /// Class that allows to track the loading progress from .zip files
     /// </summary>
     public class MEAZipLoadingProcedure : MEALoadingProcedureBase
     {
-        private string zipPath = null;
-        private byte[] zipBytes = null;
-        private bool usesZipBytes;
-
-        public MEAZipLoadingProcedure(string zipPath, MonoBehaviour monoBehaviour)
+        public MEAZipLoadingProcedure(string zipPath, MonoBehaviour monoBehaviour) : base(zipPath, monoBehaviour)
         {
-            this.zipPath = zipPath;
-            base.monoBehaviour = monoBehaviour;
         }
-        public MEAZipLoadingProcedure(byte[] zipBytes, MonoBehaviour monoBehaviour)
+        public MEAZipLoadingProcedure(byte[] zipBytes, MonoBehaviour monoBehaviour) : base(zipBytes, monoBehaviour)
         {
-            this.zipBytes = zipBytes;
-            base.monoBehaviour = monoBehaviour;
-            usesZipBytes = true;
-        }
-        /// <summary>
-        /// Path of the .zip file
-        /// </summary>
-        public string Path
-        {
-            get
-            {
-                if (usesZipBytes)
-                {
-                    throw new DataMisalignedException("Current MEAZipLoadingProcedure does not use path for populating the database. Use \"Bytes\" property instead.");
-                }
-                return zipPath;
-            }
-        }
-        /// <summary>
-        /// Bytes of the .zip file
-        /// </summary>
-        public byte[] Bytes
-        {
-            get
-            {
-                if (!usesZipBytes)
-                {
-                    throw new DataMisalignedException("Current MEAZipLoadingProcedure does not use bytes for populating the database. Use \"Path\" property instead.");
-                }
-                return zipBytes;
-            }
         }
         protected override IEnumerator LoadIEnumerator()
         {
             SetResult(LoadingResult.FilesInProgress);
 
-            ZipInputStream zipInputStream = new ZipInputStream(File.OpenRead(zipPath));
+            ZipInputStream zipInputStream = new ZipInputStream(File.OpenRead(Path));
             ZipFile zipFile = null;
-            if (usesZipBytes)
+            if (UsesFileBytes)
             {
-                zipFile = new ZipFile(new MemoryStream(zipBytes));
+                zipFile = new ZipFile(new MemoryStream(Bytes));
             }
             else
             {
-                zipFile = new ZipFile(new FileStream(zipPath, FileMode.Open, FileAccess.Read));
+                zipFile = new ZipFile(new FileStream(Path, FileMode.Open, FileAccess.Read));
             }
             ZipEntry zipEntry;
             Dictionary<string, AssetEntryMEA.Directory> dirs = new Dictionary<string, AssetEntryMEA.Directory>();
@@ -87,7 +50,7 @@ namespace Blayms.MEA
             List<AssetEntryMEA> sheetObjectEntries = new List<AssetEntryMEA>();
             coreDir.folders = new Folder[] { new Folder(coreDir) };
             coreDir.isCoreDir = true;
-            dirs.Add(coreDir.InZipPath, coreDir);
+            dirs.Add(coreDir.InPath, coreDir);
             if (zipFile.ZipFileComment != string.Empty)
             {
                 ReadZipComment(zipFile.ZipFileComment);
@@ -103,28 +66,28 @@ namespace Blayms.MEA
                     if (!dirs.ContainsKey(dir))
                     {
                         AssetEntryMEA.Directory directory = new AssetEntryMEA.Directory(System.IO.Path.Combine(System.IO.Path.GetFileName(zipFile.Name), dir));
-                        if (coreDir.InZipPath != directory.InZipPath)
+                        if (coreDir.InPath != directory.InPath)
                         {
-                            directory.zipPath = zipFile.Name;
+                            directory.filePath = zipFile.Name;
                             string[] folders = dir.Split(System.IO.Path.DirectorySeparatorChar);
                             List<AssetEntryMEA.Folder> foldersList = new List<AssetEntryMEA.Folder>();
                             foreach (string folderPath in folders)
                             {
-                                AssetEntryMEA.Directory newDir = new AssetEntryMEA.Directory(directory.InZipPath.Substring(0, directory.InZipPath.LastIndexOf(folderPath)) + folderPath);
-                                newDir.zipPath = zipFile.Name;
-                                if (!dirs.ContainsKey(newDir.InZipPath))
+                                AssetEntryMEA.Directory newDir = new AssetEntryMEA.Directory(directory.InPath.Substring(0, directory.InPath.LastIndexOf(folderPath)) + folderPath);
+                                newDir.filePath = zipFile.Name;
+                                if (!dirs.ContainsKey(newDir.InPath))
                                 {
-                                    dirs.Add(newDir.InZipPath, newDir);
+                                    dirs.Add(newDir.InPath, newDir);
                                 }
                                 AssetEntryMEA.Folder folder = null;
-                                if (createdFolders.TryGetValue(newDir.InZipPath, out Folder folder1))
+                                if (createdFolders.TryGetValue(newDir.InPath, out Folder folder1))
                                 {
                                     folder = folder1;
                                 }
                                 else
                                 {
                                     folder = new AssetEntryMEA.Folder(newDir, folderPath);
-                                    createdFolders.Add(newDir.InZipPath, folder);
+                                    createdFolders.Add(newDir.InPath, folder);
                                 }
                                 foldersList.Add(folder);
                             }
@@ -227,7 +190,7 @@ namespace Blayms.MEA
                                     }
                                     else
                                     {
-                                        throw new Exceptions.JsonNetMissingException("Sprite sheet creation requires a reference to Newtonsoft.Json");
+                                        throw new Exceptions.JsonNetMissingException("Sprite sheet creation requires a reference to Newtonsoft.Json", true);
                                     }
                                 };
                                 spriteSheetEntriesTemp.Add(zipEntry);
@@ -326,7 +289,7 @@ namespace Blayms.MEA
             {
                 for (int j = 0; j < cookedFolders.Length; j++)
                 {
-                    string[] splits = allDirsCooked[i].InZipPath.Split(System.IO.Path.DirectorySeparatorChar);
+                    string[] splits = allDirsCooked[i].InPath.Split(System.IO.Path.DirectorySeparatorChar);
                     if (splits.Contains(cookedFolders[j].Name))
                     {
                         if (!allDirsCooked[i].folders.Contains(cookedFolders[j]))
@@ -341,7 +304,7 @@ namespace Blayms.MEA
                 for (int j = 0; j < allDirsCooked[i].folders.Length; j++)
                 {
                     allDirsCooked[i].folders[j].assets_array = allDirsCooked[i].folders[j].assets_list.ToArray();
-                    if (allDirsCooked[i].InZipPath.Split(System.IO.Path.DirectorySeparatorChar).Length == 2)
+                    if (allDirsCooked[i].InPath.Split(System.IO.Path.DirectorySeparatorChar).Length == 2)
                     {
                         coreFolders.Add(allDirsCooked[i].folders[j]);
                     }
@@ -364,22 +327,9 @@ namespace Blayms.MEA
                         switch (splits[0])
                         {
                             case "pluginDllPath":
-                                string path = splits[1].Replace("\"", "").Replace("{ZIP_DIR}", System.IO.Path.GetDirectoryName(zipPath));
+                                string path = splits[1].Replace("\"", "").Replace("{ZIP_DIR}", System.IO.Path.GetDirectoryName(Path));
                                 Assembly pluginAssembly = Assembly.LoadFrom(path);
-                                if (!ModExtraAssets.referenceAssemblies.Contains(pluginAssembly))
-                                {
-                                    ModExtraAssets.referenceAssemblies.Add(pluginAssembly);
-                                    AssemblyName[] refAssemblies = pluginAssembly.GetReferencedAssemblies();
-                                    for (int j = 0; j < refAssemblies.Length; j++)
-                                    {
-                                        Assembly assembly = Assembly.Load(refAssemblies[j]);
-
-                                        if (!ModExtraAssets.referenceAssemblies.Contains(assembly))
-                                        {
-                                            ModExtraAssets.referenceAssemblies.Add(assembly);
-                                        }
-                                    }
-                                }
+                                ModExtraAssets.TryAddingReferenceAssembly(pluginAssembly);
                                 break;
                         }
                     }
